@@ -27,6 +27,6 @@ defmodule Elixirpg.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [{:rethinkdb, "~> 0.3.2"}]
   end
 end
