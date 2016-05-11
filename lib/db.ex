@@ -4,12 +4,14 @@ end
 
 defmodule DBSupervisor do
   use Supervisor
+  alias Porcelain
 
   def start_link do
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   def init([]) do
+    Porcelain.spawn("rethinkdb", [], [in: "", out: nil, err: nil]) 
     [ worker(DB, [[host: "localhost", port: 28015]])
     ] |> supervise(strategy: :one_for_one)
   end
@@ -21,9 +23,8 @@ defmodule DBTest do
   import RethinkDB.Lambda
   import DB
   
-  def new do
-    Q.table_drop("points") |>
-      Q.table_create("points") |>
+  def new do 
+  Q.table_create("points") |>
       DB.run
   end
   
