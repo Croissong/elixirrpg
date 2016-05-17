@@ -27,6 +27,7 @@ defmodule Elixirpg.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:rethinkdb, "~> 0.3.2"}, {:cowboy, "~> 1.0.0"}, {:plug, "~> 1.0"}, {:porcelain, "~> 2.0"}]
+    [{:rethinkdb, "~> 0.3.2"}, {:cowboy, "~> 1.0.0"}, {:plug, "~> 1.0"}, {:porcelain, "~> 2.0"},
+     {:poison, "~> 2.0"}]
   end
 end

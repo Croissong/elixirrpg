@@ -1,3 +1,17 @@
+defmodule ElixirRpg do 
+  use Application
+  alias DBSupervisor
+  alias MyRouter
+
+  def start do
+    start([], [])
+  end
+  
+  def start(_type, _args) do 
+  DBSupervisor.start_link
+  MyRouter.start
+  end
+end
 # require Character, as: Char
 # require Combat
 # require DB

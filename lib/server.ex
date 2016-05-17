@@ -1,7 +1,8 @@
 defmodule MyRouter do 
   use Plug.Router
-  import DBTest 
-  plug Plug.Parsers, parsers: [:json], json_decoder: Poison, pass:  ["text/*"] 
+  alias Plug.Conn
+  alias DBTest
+  alias Quest
   plug :match
   plug :dispatch
 
@@ -9,13 +10,29 @@ defmodule MyRouter do
     totalPoints = DBTest.getTotalPoints
     send_resp(conn, 200, "#{totalPoints}")
   end
+
+  get "/test" do 
+    send_resp(conn, 200, "test")
+  end
   
-  post "/receiveAward" do 
-    DBTest.receiveAward(conn.params["type"], conn.params["amount"])
-    totalPoints = DBTest.getTotalPoints
-    send_resp(conn, 200, "#{totalPoints}") 
+  post "/addQuest" do
+    {:ok, body, conn} = Conn.read_body(conn)
+    quest = Poison.decode!(body, as: %Quest{})
+    case DBTest.addQuest(quest) do
+      {:ok, id} ->
+        resp = Poison.encode!(%{id: id})
+        send_resp(conn, 200, resp)
+      {:error, error} ->
+        send_resp(conn, 500, error)
+    end
   end
 
+  post "/getQuests" do
+    {:ok, body, conn} = Conn.read_body(conn)
+    with %{"state" => state} <- Poison.Parser.parse!(body),
+         quests = DBTest.getQuests(state) |> Poison.encode!,
+      do: send_resp(conn, 200, quests)
+  end
   def start do
     Plug.Adapters.Cowboy.http MyRouter, []
   end

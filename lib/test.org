@@ -1,8 +1,0 @@
-* TODO Quest 1
-:PROPERTIES:
-:type:     daily
-:END:
-** 1.1
-asdasd
-** 1.2
-asdasd
