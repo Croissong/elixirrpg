@@ -27,6 +27,18 @@ defmodule MyRouter do
     end
   end
 
+  post "/updateQuest" do
+    {:ok, body, conn} = Conn.read_body(conn)
+    {{id: id}, quest} = Poison.Parser.parse!(body, keys: :atoms!) |> Map.split([:id]) 
+    case DBTest.updateQuest(id, quest) do
+      {:ok, changes} ->
+        resp = Poison.encode!(%{changes: changes})
+        send_resp(conn, 200, resp)
+      {:error, error} ->
+        send_resp(conn, 500, error)
+    end
+  end
+
   post "/getQuests" do
     {:ok, body, conn} = Conn.read_body(conn)
     with %{"state" => state} <- Poison.Parser.parse!(body),

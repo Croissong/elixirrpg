@@ -34,6 +34,24 @@ defmodule DBTest do
     {:ok, key}
   end
 
+  def getQuest(id) do
+  end
+
+  def updateQuest(id, updates) do
+    quest = with {state: state} <- updates,
+      do: Map.merge(updates, changeState(state))
+    changes = Query.table("quests")
+    |> Query.get(id)
+    |> Query.update(updates, %{return_changes: true}) |> DB.run |> get_in([:data, "changes"])
+    {:ok, changes}
+  end
+
+  def changeState(state) do
+    
+  end
+
+    
+
   def getTotalPoints() do
     Q.table("quests") |> Q.filter(%{"state" => "done"}) |> Q.map(lambda fn (quest) ->
       quest[:amount] end) |> DB.run |> Map.get(:data) |> Enum.reduce(0, fn(x, acc) -> acc + x end)
