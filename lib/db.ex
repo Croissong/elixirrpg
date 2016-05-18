@@ -4,8 +4,8 @@ end
 
 defmodule DBSupervisor do 
   use Supervisor
-  alias Porcelain
-
+  alias Porcelain 
+  
   def start_link do 
   Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
@@ -22,6 +22,7 @@ defmodule DBTest do
   alias RethinkDB.Query, as: Q 
   import RethinkDB.Lambda
   alias DB
+  alias Timex.Time
   
   def new do
     Q.table_drop("quests") |> DB.run
@@ -29,7 +30,8 @@ defmodule DBTest do
   end
   
   def addQuest(quest) do
-    %{data: data} = Q.table("quests") |> Q.insert(Map.from_struct(quest)) |> DB.run
+    quest = Map.from_struct(quest) |> Map.put(state, :acceptTime, Time.now(:secs))
+    %{data: data} = Q.table("quests") |> Q.insert(quest) |> DB.run
     %{"errors" => 0, "generated_keys" => [key]} = data
     {:ok, key}
   end
@@ -38,19 +40,24 @@ defmodule DBTest do
   end
 
   def updateQuest(id, updates) do
-    quest = with {state: state} <- updates,
-      do: Map.merge(updates, changeState(state))
+    quest = with %{state: state} <- updates,
+      do: Map.merge(updates, updateState(state))
     changes = Query.table("quests")
     |> Query.get(id)
     |> Query.update(updates, %{return_changes: true}) |> DB.run |> get_in([:data, "changes"])
     {:ok, changes}
   end
 
-  def changeState(state) do
-    
+  def updateState(quest) do
+    case quest.state do
+      "done" -> completeQuest(quest)
+      "todo" -> Ma
+    end
   end
 
-    
+  def completeQuest(quest) do
+    Map.put(state, :completeTime, Time.now(:secs)) |>Map.put(:XpReward, calcExperience(quest))
+  end
 
   def getTotalPoints() do
     Q.table("quests") |> Q.filter(%{"state" => "done"}) |> Q.map(lambda fn (quest) ->
@@ -64,5 +71,5 @@ end
 
 defmodule Quest do
   @derive [Poison.Encoder]
-  defstruct [:title, :type, :amount, :state, :content]
+  defstruct [:title, :type, :amount, :state, :content, :acceptTime, :completeTime]
 end

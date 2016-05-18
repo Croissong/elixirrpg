@@ -14,7 +14,7 @@ defmodule Elixirpg.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :cowboy, :plug, :porcelain]]
+    [applications: [:logger, :cowboy, :plug, :porcelain, :timex]]
   end
 
   # Dependencies can be Hex packages:
@@ -28,6 +28,6 @@ defmodule Elixirpg.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:rethinkdb, "~> 0.3.2"}, {:cowboy, "~> 1.0.0"}, {:plug, "~> 1.0"}, {:porcelain, "~> 2.0"},
-     {:poison, "~> 2.0"}]
+     {:poison, "~> 2.0"}, {:timex, "~> 2.1.4"}]
   end
 end
