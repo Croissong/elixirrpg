@@ -9,14 +9,34 @@
                  (org-element-property :contents-end h)))
     nil t))
 
+(defun bonquest-saveBonjournal ()
+  (interactive) 
+  -(let* ((buff (org-element-parse-buffer))
+          (headline (org-element-map buff 'headline (lambda (x) x) nil t))
+          (quest `(:title ,(org-element-property :raw-value headline)
+                          :type ,(org-element-property :QUEST-TYPE headline)
+                          :state ,(org-element-property :todo-keyword headline)
+                          :content ,(bonquest--parseContent headline)))
+          (json (json-encode-list quest)))
+     (deferred:$
+      (postQuest json)
+      (deferred:nextc it
+                      (lambda (resp)
+                        (let* ((data (request-response-data resp))
+                               (id (alist-get 'id data)))
+                          (org-entry-put (point) "id" id)
+                          )))))
+  (widen))
+    (message "Not on headline")))
+
 (defun bonquest-getOpenQuests ()
   (deferred:$
-    (bonquest--fetchQuests "todo")
-    (deferred:nextc it
-      (lambda (resp)
-        (let ((quests (request-response-data resp)))
-          (-map 'bonquest--insertQuest quests))))
-    ))
+   (bonquest--fetchQuests "todo")
+   (deferred:nextc it
+                   (lambda (resp)
+                     (let ((quests (request-response-data resp)))
+                       (-map 'bonquest--insertQuest quests))))
+   ))
 
 (defun bonquest--insertQuest (quest)
   (org-insert-heading-respect-content)

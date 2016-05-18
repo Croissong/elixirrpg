@@ -56,7 +56,11 @@ defmodule DBTest do
   end
 
   def completeQuest(quest) do
-    Map.put(state, :completeTime, Time.now(:secs)) |>Map.put(:XpReward, calcExperience(quest))
+    xp = calcXpReward(quest)
+    gold = calcGoldReward(quest)
+    reward = %{xp: xp, gold: gold}
+    Character.addReward(reward)
+    Map.put(state, :completeTime, Time.now(:secs)) |> Map.put(:reward, reward) |>
   end
 
   def getTotalPoints() do
@@ -67,6 +71,15 @@ defmodule DBTest do
   def getQuests(state) do
     Q.table("quests") |> Q.filter(%{"state" => state}) |> DB.run |> Map.get(:data)
   end
+
+  def calcXpReward(quest) do
+    5
+  end
+
+  def calcGoldReward(quest) do
+    10
+  end
+    
 end
 
 defmodule Quest do
