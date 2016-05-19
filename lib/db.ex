@@ -1,19 +1,35 @@
-defmodule DB do
-  use RethinkDB.Connection
+defmodule DB do 
+  import Porcelain 
+  alias RethinkDB.Connection, as: Conn
+  
+  def start_link(opts) do 
+  {:ok, pid} = Task.start_link(fn -> print_output end)
+  Porcelain.spawn("rethinkdb", [], [in: "", out: {:send, pid}])
+  Conn.start_link(opts)
+  end
+
+  def print_output do
+    receive do
+      {_, :data, :out, data} ->
+        IO.inspect(data)
+        print_output
+    end
+  end
 end
 
 defmodule DBSupervisor do 
   use Supervisor
-  alias Porcelain 
   
-  def start_link do 
-  Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link do
+    Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
   
   def init([]) do 
-  proc = Porcelain.spawn("rethinkdb", ["-d", "data/"], [in: "", out: {:send, self()}]) 
-  [ worker(DB, [[host: "localhost", port: 28015, db: to_string(Mix.env)]])
-  ] |> supervise(strategy: :one_for_one)
+  children = [
+      worker(DB, [[host: "localhost", port: 28015, db: to_string(Mix.env)]])
+    ]
+    
+  supervise(children, strategy: :one_for_one)
   end
 end
 
