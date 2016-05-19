@@ -1,20 +1,35 @@
-defmodule DB do
-  use RethinkDB.Connection
+defmodule DB do 
+  import Porcelain 
+  alias RethinkDB.Connection, as: Conn
+  
+  def start_link(opts) do 
+  {:ok, pid} = Task.start_link(fn -> print_output end)
+  Porcelain.spawn("rethinkdb", [], [in: "", out: {:send, pid}])
+  Conn.start_link(opts)
+  end
+
+  def print_output do
+    receive do
+      {_, :data, :out, data} ->
+        IO.inspect(data)
+        print_output
+    end
+  end
 end
 
 defmodule DBSupervisor do 
   use Supervisor
-  alias Porcelain 
   
-  def start_link do 
-  Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link do
+    Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   def init([]) do 
-  proc = Porcelain.spawn("rethinkdb", [], [in: "", out: {:send, self()}])
-  IO.inspect proc
-  [ worker(DB, [[host: "localhost", port: 28015, db: to_string(Mix.env)]])
-  ] |> supervise(strategy: :one_for_one)
+  children = [
+      worker(DB, [[host: "localhost", port: 28015, db: to_string(Mix.env)]])
+    ]
+    
+  supervise(children, strategy: :one_for_one)
   end
 end
 
@@ -30,7 +45,7 @@ defmodule DBTest do
   end
   
   def addQuest(quest) do
-    quest = Map.from_struct(quest) |> Map.put(state, :acceptTime, Time.now(:secs))
+    quest = Map.from_struct(quest) |> Map.put(quest, :acceptTime, Time.now(:secs))
     %{data: data} = Q.table("quests") |> Q.insert(quest) |> DB.run
     %{"errors" => 0, "generated_keys" => [key]} = data
     {:ok, key}
@@ -60,7 +75,7 @@ defmodule DBTest do
     gold = calcGoldReward(quest)
     reward = %{xp: xp, gold: gold}
     Character.addReward(reward)
-    Map.put(state, :completeTime, Time.now(:secs)) |> Map.put(:reward, reward) |>
+    Map.put(quest, :completeTime, Time.now(:secs)) |> Map.put(:reward, reward)
   end
 
   def getTotalPoints() do
