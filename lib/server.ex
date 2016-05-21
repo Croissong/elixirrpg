@@ -27,6 +27,11 @@ defmodule MyRouter do
     end
   end
 
+  post "/addBonEntry" do
+    {:ok, body, conn} = Conn.read_body(conn)
+    bonEntry = Poison.decode!(body, as: %BonEntry{})
+  end
+  
   post "/updateQuest" do
     {:ok, body, conn} = Conn.read_body(conn)
     {%{id: id}, quest} = Poison.Parser.parse!(body, keys: :atoms!) |> Map.split([:id]) 

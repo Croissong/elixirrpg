@@ -2,12 +2,19 @@ defmodule ElixirRpg do
   use Application
   alias DBSupervisor
   alias MyRouter
+  alias Characters
+  alias Character
+  alias DB
+  alias DBTest
 
-  def start do
-    start([], [])
+  def new do
+    DB.new
+    DBTest.new
+    Characters.initChar(Character.new(:Skender))
   end
+    
   
-  def start(_type, _args) do 
+  def start(_type \\[], _args \\[]) do 
   DBSupervisor.start_link
   MyRouter.start
   end

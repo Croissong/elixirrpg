@@ -1,17 +1,23 @@
 defmodule DB do 
-  import Porcelain 
   alias RethinkDB.Connection, as: Conn
+  alias RethinDB.Query, as: Q
+  alias Porcelain.Process, as: Proc
+
+  def new do
+    Q.db_drop(Mix.env) |> DB.run
+    Q.db_create(Mix.env) |> DB.run
+  end
   
   def start_link(opts) do 
   {:ok, pid} = Task.start_link(fn -> print_output end)
-  Porcelain.spawn("rethinkdb", [], [in: "", out: {:send, pid}])
+  IO.puts ("asddas")
+  %Proc{pid: pid} = Porcelain.spawn("rethinkdb", [], out: {:send, pid})
   Conn.start_link(opts)
   end
 
   def print_output do
     receive do
-      {_, :data, :out, data} ->
-        IO.inspect(data)
+      {_, :data, :out, data} -> 
         print_output
     end
   end
@@ -28,7 +34,7 @@ defmodule DBSupervisor do
   children = [
       worker(DB, [[host: "localhost", port: 28015, db: to_string(Mix.env)]])
     ]
-    
+  
   supervise(children, strategy: :one_for_one)
   end
 end
@@ -38,18 +44,18 @@ defmodule DBTest do
   import RethinkDB.Lambda
   alias DB
   alias Timex.Time
+  require Logger
   
-  def new do
-    Q.db_drop(Mix.env) |> DB.run
-    Q.db_create(Mix.env) |> DB.run
-    Q.table_drop("quests") |> DB.run
-    Q.table_create("quests") |> DB.run
+  def new do 
+  Q.table_drop("quests") |> DB.run
+  Q.table_create("quests") |> DB.run
   end
   
-  def addQuest(quest) do
-    quest = Map.from_struct(quest) |> Map.put(quest, :acceptTime, Time.now(:secs))
+  def addQuest(quest, char \\:Skender) do
+    quest = Map.from_struct(quest) |> Map.put(:acceptTime, Time.now(:secs)) |> Map.put(:character, char)
     %{data: data} = Q.table("quests") |> Q.insert(quest) |> DB.run
     %{"errors" => 0, "generated_keys" => [key]} = data
+    Logger.info("Quest #{inspect quest} added")
     {:ok, key}
   end
 
@@ -57,18 +63,17 @@ defmodule DBTest do
   end
 
   def updateQuest(id, updates) do
-    quest = with %{state: state} <- updates,
-      do: Map.merge(updates, updateState(state))
+    updateState(updates)
     changes = Query.table("quests")
     |> Query.get(id)
     |> Query.update(updates, %{return_changes: true}) |> DB.run |> get_in([:data, "changes"])
+    Logger.info("Quest #{id} updated: #{changes}")
     {:ok, changes}
   end
 
-  def updateState(quest) do
-    case quest.state do
-      "done" -> completeQuest(quest)
-      "todo" -> Ma
+  def updateState(updates) do
+    case updates.state do
+      "done" -> completeQuest(updates)
     end
   end
 
@@ -76,8 +81,9 @@ defmodule DBTest do
     xp = calcXpReward(quest)
     gold = calcGoldReward(quest)
     reward = %{xp: xp, gold: gold}
-    Character.addReward(reward)
+    Character.addReward(quest.character, reward)
     Map.put(quest, :completeTime, Time.now(:secs)) |> Map.put(:reward, reward)
+    Logger.info("Quest #{quest} completed")
   end
 
   def getTotalPoints() do
@@ -102,5 +108,5 @@ end
 
 defmodule Quest do
   @derive [Poison.Encoder]
-  defstruct [:title, :type, :amount, :state, :content, :acceptTime, :completeTime]
+  defstruct [:title, :type, :amount, :state, :content, :acceptTime, :completeTime, :character]
 end
