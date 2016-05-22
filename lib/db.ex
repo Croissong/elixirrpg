@@ -1,18 +1,27 @@
 defmodule DB do 
   alias RethinkDB.Connection, as: Conn
-  alias RethinDB.Query, as: Q
+  alias RethinkDB.Query, as: Q
   alias Porcelain.Process, as: Proc
-
+  require Logger
+  
+  def run(query, opts \\ []) do
+    Conn.run(query, __MODULE__, opts)
+  end
+  
   def new do
-    Q.db_drop(Mix.env) |> DB.run
-    Q.db_create(Mix.env) |> DB.run
+    Q.db_drop(Mix.env) |> run
+    with _ <- Q.db_create(Mix.env) |> run |> Map.get(:data) |> Map.get("dbs_created"),
+         1 <- Q.table_create("quests") |> run |> Map.get(:data) |> Map.get("tables_created"),
+           1 <- Q.table_create("characters") |> run |> Map.get(:data) |> Map.get("tables_created"),
+           1 <- Q.table_create("bonjournal") |> run |> Map.get(:data) |> Map.get("tables_created"),
+      do: Logger.info("Renewed DB")
   end
   
   def start_link(opts) do 
   {:ok, pid} = Task.start_link(fn -> print_output end)
-  IO.puts ("asddas")
-  %Proc{pid: pid} = Porcelain.spawn("rethinkdb", [], out: {:send, pid})
-  Conn.start_link(opts)
+  dir = "rethinkdb_data/" <> to_string(Mix.env) <> "/"
+  %Proc{pid: pid} = Porcelain.spawn("rethinkdb", ["-d", dir], [out: {:send, pid}])
+  Conn.start_link(Dict.put_new(opts, :name, __MODULE__))
   end
 
   def print_output do
@@ -45,14 +54,9 @@ defmodule DBTest do
   alias DB
   alias Timex.Time
   require Logger
-  
-  def new do 
-  Q.table_drop("quests") |> DB.run
-  Q.table_create("quests") |> DB.run
-  end
-  
+
   def addQuest(quest, char \\:Skender) do
-    quest = Map.from_struct(quest) |> Map.put(:acceptTime, Time.now(:secs)) |> Map.put(:character, char)
+    quest = Map.from_struct(quest) |> Map.put(:acceptTime, Time.now(:seconds)) |> Map.put(:character, char)
     %{data: data} = Q.table("quests") |> Q.insert(quest) |> DB.run
     %{"errors" => 0, "generated_keys" => [key]} = data
     Logger.info("Quest #{inspect quest} added")
@@ -77,10 +81,14 @@ defmodule DBTest do
     end
   end
 
+  def calcReward() do
+    xp = calcXpReward(nil)
+    gold = calcGoldReward(nil)
+    %{xp: xp, gold: gold}
+  end
+
   def completeQuest(quest) do
-    xp = calcXpReward(quest)
-    gold = calcGoldReward(quest)
-    reward = %{xp: xp, gold: gold}
+    reward = calcReward()
     Character.addReward(quest.character, reward)
     Map.put(quest, :completeTime, Time.now(:secs)) |> Map.put(:reward, reward)
     Logger.info("Quest #{quest} completed")
@@ -108,5 +116,5 @@ end
 
 defmodule Quest do
   @derive [Poison.Encoder]
-  defstruct [:title, :type, :amount, :state, :content, :acceptTime, :completeTime, :character]
+  defstruct [:title, :type, :reward, :state, :content, :acceptTime, :completeTime, :character]
 end

@@ -9,14 +9,14 @@ defmodule ElixirRpg do
 
   def new do
     DB.new
-    DBTest.new
-    Characters.initChar(Character.new(:Skender))
+    Character.new(:Skender)
   end
     
   
   def start(_type \\[], _args \\[]) do 
   DBSupervisor.start_link
   MyRouter.start
+  IO.puts "ready"
   end
 end
 # require Character, as: Char

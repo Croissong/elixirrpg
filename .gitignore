@@ -4,6 +4,9 @@
 erl_crash.dump
 *.ez
 *.beam
-rethinkdb_data/
-/data/log_file
-/data/metadata
+/rethinkdb_data/dev/
+/rethinkdb_data/prod/dirlock
+/rethinkdb_data/prod/log_file
+/rethinkdb_data/prod/metadata
+/rethinkdb_data/prod/temp/
+/goon

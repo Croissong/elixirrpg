@@ -1,7 +1,10 @@
 defmodule Character do
   require Logger
+  alias RethinkDB.Query, as: Q
+  alias DB
   
-  defstruct [:name, :stats]
+  defstruct [:name, :stats, :id]
+  
   defmodule Stats do
     defstruct [:level, :xp, :gold]
     def new(level \\0, xp \\0, gold \\0) do
@@ -9,22 +12,25 @@ defmodule Character do
     end
   end
   
-  def new(name, stats \\ %{}) do
-    char = %Character{name: name, stats: Map.merge(Stats.new, stats)}
-    Logger.info("New character #{inspect char}")
-    char
+  def new(name, stats \\ %{}) do 
+  char = %{name: name, stats: stats} 
+  query = Q.table("characters") |> Q.insert(char) |> DB.run
+  with %{"inserted"=> 1, "generated_keys"=> [id]} <-  query.data,
+       char = Map.put(char, :id, id) |> update_in([:stats], &Map.merge(Stats.new, &1)),
+       {:ok, char} <- struct(Character, char) |> Characters.initChar,
+         Logger.info("New character #{inspect char}"),
+    do: char 
   end
   
-  def start_link(char) do
-    IO.inspect char
-    Agent.start_link(fn -> char end, name: char.name)
-    char
+  def start_link(char) do 
+  Agent.start_link(fn -> char end, name: char.name) 
   end
   
-  def update(name, newChar) do
-    Agent.get_and_update(name,
-      fn char ->  Map.merge(char, newChar) end
-    )
+  def update(name, newChar) do 
+  with {:ok, id} <- Agent.get_and_update(name, &({{:ok, &1.id}, Map.merge(&1, newChar)})),
+       0 <- Q.table("characters") |> Q.get(id)
+       |> Q.update(newChar) |> DB.run |> Map.get(:data) |> Map.get("errors"),
+      do: {:ok, newChar}      
   end
 
   def get(name) do
@@ -33,22 +39,22 @@ defmodule Character do
 
   def addReward(name, reward) do
     %{xp: xpGain, gold: goldGain} = reward
-    %{xp: xp, gold: gold, level: level} = get(name)
+    %{stats: %{xp: xp, gold: gold, level: level}} = get(name)
     {level, xp} = levelUp(level, xp + xpGain)
     reward = %{xp: xp, gold: gold + goldGain, level: level}
-    Logger.info("#{name} reward added: #{inspect reward}")
-    Agent.update(name, reward)
+    case update(name, %{stats: reward}) do
+      {:ok, _} ->
+        Logger.info("#{name} reward added: #{inspect reward}")
+        {:ok, reward}
+    end
   end
 
-  def levelUp(level, xp) do
+  defp levelUp(level, xp) do
     levelGain = div(xp, 30)
     if levelGain > 0, do: Logger.info("Level up")
     {level + levelGain, xp - levelGain * 30}
   end
-    
-  
 end
-
   
 defmodule Characters do
   import RethinkDB.Lambda
@@ -56,11 +62,6 @@ defmodule Characters do
   alias DB
   alias Character
   require Logger
-  
-  def new do
-    Q.table_drop("characters") |> DB.run
-    Q.table_create("characters") |> DB.run
-  end
 
   def init do
     Q.table("characters") |> DB.run |> Map.get(:data) |> Enum.map(&(initChar(&1)))
@@ -68,7 +69,10 @@ defmodule Characters do
 
   def initChar(char) do
     case Map.merge(%Character{}, char) |> Character.start_link do
-      {:ok, char} -> Logger.info("Initialized character #{inspect char}")
+      {:ok, char} ->
+        Logger.info("Initialized character #{inspect char}")
+        {:ok, char}
+      {:error, err} -> Logger.error("#{inspect err}")
     end
   end
 end

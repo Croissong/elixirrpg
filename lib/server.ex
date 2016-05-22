@@ -3,12 +3,21 @@ defmodule MyRouter do
   alias Plug.Conn
   alias DBTest
   alias Quest
+  alias Bonjournal
+  alias Character
   plug :match
   plug :dispatch
 
-  get "/totalPoints" do
-    totalPoints = DBTest.getTotalPoints
-    send_resp(conn, 200, "#{totalPoints}")
+  post "/characterInfo" do
+    {:ok, body, conn} = Conn.read_body(conn)
+    %{character: char} = Poison.Parser.parse!(body, keys: :atoms!)
+    case String.to_atom(char) |> Character.get do
+      char ->
+        resp = Poison.encode!(%{char: char})
+        send_resp(conn, 200, resp)
+      {:error, err} ->
+        send_resp(conn, 500, err)
+    end
   end
 
   get "/test" do 
@@ -22,14 +31,21 @@ defmodule MyRouter do
       {:ok, id} ->
         resp = Poison.encode!(%{id: id})
         send_resp(conn, 200, resp)
-      {:error, error} ->
-        send_resp(conn, 500, error)
+      {:error, err} ->
+        send_resp(conn, 500, err)
     end
   end
 
-  post "/addBonEntry" do
+  post "/addBonentry" do
     {:ok, body, conn} = Conn.read_body(conn)
-    bonEntry = Poison.decode!(body, as: %BonEntry{})
+    entry = Poison.decode!(body, as: %Bonjournal.Entry{})
+    case Bonjournal.addEntry(entry) do
+      {:ok, reward, lines} ->
+        resp = Poison.encode!(%{reward: reward, lines: lines})
+        send_resp(conn, 200, resp)
+      {:error, err} ->
+        send_resp(conn, 500, err)
+    end 
   end
   
   post "/updateQuest" do
