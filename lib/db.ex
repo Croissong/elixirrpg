@@ -57,6 +57,9 @@ defmodule DBTest do
 
   def addQuest(quest, char \\:Skender) do
     quest = Map.from_struct(quest) |> Map.put(:acceptTime, Time.now(:seconds)) |> Map.put(:character, char)
+    if quest.state == "done" do
+      quest = completeQuest(quest)
+    end
     %{data: data} = Q.table("quests") |> Q.insert(quest) |> DB.run
     %{"errors" => 0, "generated_keys" => [key]} = data
     Logger.info("Quest #{inspect quest} added")
@@ -67,7 +70,7 @@ defmodule DBTest do
   end
 
   def updateQuest(id, updates) do
-    updateState(updates)
+    updates = updateState(updates)
     changes = Query.table("quests")
     |> Query.get(id)
     |> Query.update(updates, %{return_changes: true}) |> DB.run |> get_in([:data, "changes"])
@@ -75,9 +78,9 @@ defmodule DBTest do
     {:ok, changes}
   end
 
-  def updateState(updates) do
-    case updates.state do
-      "done" -> completeQuest(updates)
+  def updateState(quest) do
+    case quest.state do
+      "done" -> completeQuest(quest)
     end
   end
 
@@ -90,8 +93,10 @@ defmodule DBTest do
   def completeQuest(quest) do
     reward = calcReward()
     Character.addReward(quest.character, reward)
-    Map.put(quest, :completeTime, Time.now(:secs)) |> Map.put(:reward, reward)
+    quest = quest |> Map.put(:completeTime, Time.now(:secs))
+    |> Map.put(:reward, reward) |> Map.put(:state, "done")
     Logger.info("Quest #{quest} completed")
+    quest
   end
 
   def getTotalPoints() do

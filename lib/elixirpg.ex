@@ -16,6 +16,7 @@ defmodule ElixirRpg do
   def start(_type \\[], _args \\[]) do 
   DBSupervisor.start_link
   MyRouter.start
+  Characters.init
   IO.puts "ready"
   end
 end

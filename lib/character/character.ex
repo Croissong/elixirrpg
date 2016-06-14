@@ -22,14 +22,16 @@ defmodule Character do
     do: char 
   end
   
-  def start_link(char) do 
-  Agent.start_link(fn -> char end, name: char.name) 
+  def start_link(char) do
+    IO.inspect char
+    IO.inspect char.name
+    Agent.start_link(fn -> char end, name: char.name) 
   end
   
   def update(name, newChar) do 
-  with {:ok, id} <- Agent.get_and_update(name, &({{:ok, &1.id}, Map.merge(&1, newChar)})),
-       0 <- Q.table("characters") |> Q.get(id)
-       |> Q.update(newChar) |> DB.run |> Map.get(:data) |> Map.get("errors"),
+    with {:ok, id} <- Agent.get_and_update(name, &({{:ok, &1.id}, Map.merge(&1, newChar)})),
+         0 <- Q.table("characters") |> Q.get(id)
+         |> Q.update(newChar) |> DB.run |> Map.get(:data) |> Map.get("errors"),
       do: {:ok, newChar}      
   end
 
@@ -39,7 +41,8 @@ defmodule Character do
 
   def addReward(name, reward) do
     %{xp: xpGain, gold: goldGain} = reward
-    %{stats: %{xp: xp, gold: gold, level: level}} = get(name)
+    char = get(name) |> IO.inspect
+    %{stats: %{xp: xp, gold: gold, level: level}} = char
     {level, xp} = levelUp(level, xp + xpGain)
     reward = %{xp: xp, gold: gold + goldGain, level: level}
     case update(name, %{stats: reward}) do
@@ -67,10 +70,14 @@ defmodule Characters do
     Q.table("characters") |> DB.run |> Map.get(:data) |> Enum.map(&(initChar(&1)))
   end
 
-  def initChar(char) do
-    case Map.merge(%Character{}, char) |> Character.start_link do
-      {:ok, char} ->
-        Logger.info("Initialized character #{inspect char}")
+  def initChar(char) do 
+    char = char |> Enum.reduce(%Character{},
+      fn ({key, val}, acc) -> Map.put(acc, String.to_atom(key), val) end)
+    {_, char} = Map.get_and_update(char, :name, &({&1, String.to_atom(&1)})) 
+    
+    case Character.start_link(char) do
+      {:ok, pid} ->
+        Logger.info("Initialized character #{inspect char} #{inspect pid}")
         {:ok, char}
       {:error, err} -> Logger.error("#{inspect err}")
     end
