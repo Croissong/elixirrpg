@@ -1,10 +1,7 @@
-defmodule MyRouter do 
+defmodule ExPG.Router do 
   use Plug.Router
   alias Plug.Conn
-  alias DBTest
-  alias Quest
-  alias Bonjournal
-  alias Character
+  alias ExPG.{Quests, Quest, Bonjournal, Character}
   plug :match
   plug :dispatch
 
@@ -20,14 +17,10 @@ defmodule MyRouter do
     end
   end
 
-  get "/test" do 
-    send_resp(conn, 200, "test")
-  end
-  
   post "/addQuest" do
     {:ok, body, conn} = Conn.read_body(conn)
     quest = Poison.decode!(body, as: %Quest{})
-    case DBTest.addQuest(quest) do
+    case Quests.addQuest(quest) do
       {:ok, id} ->
         resp = Poison.encode!(%{id: id})
         send_resp(conn, 200, resp)
@@ -51,7 +44,7 @@ defmodule MyRouter do
   post "/updateQuest" do
     {:ok, body, conn} = Conn.read_body(conn)
     {%{id: id}, quest} = Poison.Parser.parse!(body, keys: :atoms!) |> Map.split([:id]) 
-    case DBTest.updateQuest(id, quest) do
+    case Quests.updateQuest(id, quest) do
       {:ok, changes} ->
         resp = Poison.encode!(%{changes: changes})
         send_resp(conn, 200, resp)
@@ -63,7 +56,7 @@ defmodule MyRouter do
   post "/getQuests" do
     {:ok, body, conn} = Conn.read_body(conn)
     with %{"state" => state} <- Poison.Parser.parse!(body),
-         quests = DBTest.getQuests(state) |> Poison.encode!,
+         quests = Quests.get_all(state) |> Poison.encode!,
       do: send_resp(conn, 200, quests)
   end
   def start do

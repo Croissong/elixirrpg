@@ -17,10 +17,17 @@ defmodule Bonjournal do
         reward = DBTest.calcReward()
         Character.addReward(char, reward)
         lines = entry.entry |> String.split("\n") |> length
-        Logger.info("Entry added #{String.slice(entry.entry, 0, 20)}")
+        Logger.info("Entry added << #{String.slice(entry.entry, 0..10)}"
+          <> "... #{String.slice(entry.entry, -15..-1)} >>")
         {:ok, reward, lines}
       :else -> Logger.error("#{inspect query}")
     end
+  end
+
+  def getRecentEntries(count, char \\:Skender) do
+    data = Q.table("bonjournal")
+    |> Q.filter(%{character: char})
+    |> Q.order_by(Q.desc(:time)) |> Q.limit(count) |> DB.run |> Map.get(:data) 
   end
 end
 
