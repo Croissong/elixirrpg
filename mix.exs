@@ -28,6 +28,7 @@ defmodule Elixirpg.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:rethinkdb, "~> 0.3.2"}, {:cowboy, "~> 1.0.0"}, {:plug, "~> 1.0"}, {:porcelain, "~> 2.0"},
-     {:poison, "~> 2.0"}, {:timex, "~> 2.1.4"}]
+     {:poison, "~> 2.0"}, {:timex, "~> 2.1.4"}, {:credo, "~> 0.3.10", only: [:dev, :test]},
+     {:dialyxir, "~> 0.3.3", only: [:dev, :test]}]
   end
 end

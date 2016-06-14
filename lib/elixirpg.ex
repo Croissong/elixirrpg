@@ -1,18 +1,13 @@
-defmodule ElixirRpg do 
+defmodule ExPG do 
   use Application
-  alias DBSupervisor
-  alias MyRouter
-  alias Characters
-  alias Character
-  alias DB
-  alias DBTest
+  alias ExPG.{DBSupervisor, Router, Character, DB} 
 
   def new do
     DB.new
-    Character.new(:Skender)
+    Character.new_and_init(:Skender)
+    Character.new_and_init(:Enemy)
   end
-    
-  
+
   def start(_type \\[], _args \\[]) do 
   DBSupervisor.start_link
   MyRouter.start
@@ -20,14 +15,3 @@ defmodule ElixirRpg do
   IO.puts "ready"
   end
 end
-# require Character, as: Char
-# require Combat
-# require DB
-# require Character.Stats, as: S
-# require Combat.Stats, as: CS 
-   
-# {:ok, skender} = CS.make(10, 20) |> S.make |> Char.new("Skender")
-# {:ok, soehnke} = CS.make(5, 30) |> S.make(1) |> Char.new("Soehnke")
-# Combat.attack(skender, soehnke)
-# Combat.attack(skender, soehnke)
-# Char.get(soehnke).stats.combat_stats.health
