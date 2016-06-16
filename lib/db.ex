@@ -20,7 +20,8 @@ defmodule ExPG.DB do
   def start_link(opts) do 
     {:ok, pid} = Task.start_link(fn -> print_output end)
     dir = "rethinkdb_data/" <> to_string(Mix.env) <> "/"
-    %Proc{pid: pid} = Porcelain.spawn("rethinkdb", ["-d", dir], [out: {:send, pid}])
+    %Proc{pid: _} = Porcelain.spawn("rethinkdb", ["-d", dir], [out: {:send, pid}])
+    :timer.sleep(2000)
     Conn.start_link(Dict.put_new(opts, :name, __MODULE__))
   end
 
@@ -42,7 +43,7 @@ defmodule ExPG.DBSupervisor do
   
   def init([]) do 
     children = [
-      worker(DB, [[host: "localhost", port: 28015, db: to_string(Mix.env)]])
+      worker(ExPG.DB, [[host: "localhost", port: 28015, db: to_string(Mix.env)]])
     ]
   
     supervise(children, strategy: :one_for_one)

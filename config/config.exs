@@ -2,7 +2,8 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
-config :porcelain, :goon_driver_path, "goon/"
+config :porcelain, :driver, Porcelain.Driver.Basic
+config :logger, :console, metadata: [:file, :line]
 
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this

@@ -1,4 +1,4 @@
-defmodule Bonjournal do
+defmodule ExPG.Bonjournal do
   alias DBTest
   alias Timex.Time
   alias RethinkDB.Query, as: Q
@@ -16,10 +16,12 @@ defmodule Bonjournal do
       0 ->
         reward = DBTest.calcReward()
         Character.addReward(char, reward)
-        lines = entry.entry |> String.split("\n") |> length
+        words = entry.entry |> String.split |> length
         Logger.info("Entry added << #{String.slice(entry.entry, 0..10)}"
           <> "... #{String.slice(entry.entry, -15..-1)} >>")
-        {:ok, reward, lines}
+        Logger.info("Entry added << #{String.slice(entry.entry, 0..10)}"
+          <> "... #{String.slice(entry.entry, -15..-1)} >>")
+        {:ok, reward, words}
       :else -> Logger.error("#{inspect query}")
     end
   end

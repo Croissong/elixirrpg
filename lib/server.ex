@@ -1,7 +1,7 @@
 defmodule ExPG.Router do 
   use Plug.Router
   alias Plug.Conn
-  alias ExPG.{Quests, Quest, Bonjournal, Character}
+  alias ExPG.{Quests, Quest, Bonjournal, Character, Quotes}
   plug :match
   plug :dispatch
 
@@ -11,18 +11,16 @@ defmodule ExPG.Router do
     case String.to_atom(char) |> Character.get do
       char ->
         resp = Poison.encode!(%{char: char})
-        send_resp(conn, 200, resp)
-      {:error, err} ->
-        send_resp(conn, 500, err)
+        send_resp(conn, 200, resp) 
     end
   end
 
-  post "/addQuest" do
-    {:ok, body, conn} = Conn.read_body(conn)
+  post "/addQuest" do 
+    {:ok, body, conn} = Conn.read_body(conn) 
     quest = Poison.decode!(body, as: %Quest{})
-    case Quests.addQuest(quest) do
-      {:ok, id} ->
-        resp = Poison.encode!(%{id: id})
+    case Quests.add(quest) do
+      {:ok, response} ->
+        resp = Poison.encode!(response)
         send_resp(conn, 200, resp)
       {:error, err} ->
         send_resp(conn, 500, err)
@@ -44,13 +42,20 @@ defmodule ExPG.Router do
   post "/updateQuest" do
     {:ok, body, conn} = Conn.read_body(conn)
     {%{id: id}, quest} = Poison.Parser.parse!(body, keys: :atoms!) |> Map.split([:id]) 
-    case Quests.updateQuest(id, quest) do
+    case Quests.update(id, quest) do
       {:ok, changes} ->
         resp = Poison.encode!(%{changes: changes})
         send_resp(conn, 200, resp)
       {:error, error} ->
         send_resp(conn, 500, error)
     end
+  end
+
+  post "/addQuote" do
+    {:ok, body, conn} = Conn.read_body(conn)
+    quot = Poison.Parser.parse!(body, keys: :atoms!)
+    Quotes.add(quot)
+    send_resp(conn, 200, "")
   end
 
   post "/getQuests" do
@@ -60,7 +65,6 @@ defmodule ExPG.Router do
       do: send_resp(conn, 200, quests)
   end
   def start do
-    Plug.Adapters.Cowboy.http MyRouter, []
+    Plug.Adapters.Cowboy.http ExPG.Router, []
   end
 end
-

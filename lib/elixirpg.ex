@@ -1,6 +1,6 @@
 defmodule ExPG do 
   use Application
-  alias ExPG.{DBSupervisor, Router, Character, DB} 
+  alias ExPG.{DBSupervisor, Router, Character, Characters, DB} 
 
   def new do
     DB.new
@@ -9,9 +9,9 @@ defmodule ExPG do
   end
 
   def start(_type \\[], _args \\[]) do 
-  DBSupervisor.start_link
-  MyRouter.start
-  Characters.init
-  IO.puts "ready"
+    DBSupervisor.start_link
+    Router.start
+    Characters.init_from_db
+    IO.puts "ready"
   end
 end
