@@ -14,7 +14,8 @@ defmodule Elixirpg.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :cowboy, :plug, :porcelain, :timex, :logger , :maptu, :httpoison]]
+    [applications: [:logger, :cowboy, :plug, :porcelain, :timex, :logger , :maptu, :httpoison],
+     mod: {Expg, []}]
   end
 
   # Dependencies can be Hex packages:

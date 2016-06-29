@@ -8,8 +8,10 @@ defmodule Expg.Character do
   defstruct [:name, :stats, :id, :combatStats]
 
   def as_struct(char) do 
-    Maptu.struct!(Expg.Character, char) |>
-      Map.update!(:combatStats, &Maptu.struct!(Combat.Stats, &1)) |> Map.update!(:stats, &Maptu.struct!(Stats, &1)) |> Map.update!(:name, &String.to_atom(&1)) 
+    Maptu.struct!(Expg.Character, char) 
+    |> Map.update!(:combatStats, &Maptu.struct!(Expg.Combat.Stats, &1))
+    |> Map.update!(:stats, &Maptu.struct!(Stats, &1))
+    |> Map.update!(:name, &String.to_atom(&1)) 
   end
 
   def from_struct(char) do
@@ -81,12 +83,30 @@ end
 
 
 defmodule Expg.Characters do 
+  use Supervisor
   alias RethinkDB.Query, as: Q 
   alias Expg.{DB, Character} 
   require Logger
+    
+  def start_link(_state, opts \\ 0) do
+    Supervisor.start_link(__MODULE__, opt, name: __MODULE__)
+  end
+    
+  def init([]) do
+    init_from_db
+    children = [
+    ]
+      
+    supervise(children, strategy: :one_for_one)
+  end
 
+  
   def init_from_db do
-    Q.table("characters") |> DB.run |> Map.get(:data) |> Enum.map(&(init_char(&1)))
+    query = Q.table("characters") |> DB.run
+    case Map.get(query, :data) do
+      %{"b" => []} -> IO.puts "No characters."
+      data -> Enum.map(data, &(init_char(&1)))
+    end
   end
 
   def init_char_from_struct(%Character{} = char) do

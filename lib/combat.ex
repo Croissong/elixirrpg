@@ -11,11 +11,11 @@ defmodule Expg.Combat do
     Character.update(defender)
   end
 
-  defmodule Stats do 
-    defstruct [:damage, :health]
-    def new(damage \\10, health  \\30) do
-      %Stats{damage: damage, health: health}
-    end
-  end
+end
 
+defmodule Expg.Combat.Stats do 
+  defstruct [:damage, :health]
+  def new(damage \\10, health  \\30) do
+    %__MODULE__{damage: damage, health: health}
+  end
 end

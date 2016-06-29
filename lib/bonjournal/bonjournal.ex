@@ -15,10 +15,8 @@ defmodule Expg.Bonjournal do
       0 ->
         reward = Quests.calc_reward()
         Character.add_reward(char, reward)
-        words = entry.entry |> String.split |> length
-        Logger.info("Entry added << #{String.slice(entry.entry, 0..10)}"
-          <> "... #{String.slice(entry.entry, -15..-1)} >>")
-        Logger.info("Entry added << #{String.slice(entry.entry, 0..10)}"
+        words = entry.entry |> String.split |> length 
+        Logger.info("Entry added << #{String.slice(entry.entry, 21..31)}"
           <> "... #{String.slice(entry.entry, -15..-1)} >>")
         {:ok, reward, words}
       :else -> Logger.error("#{inspect query}")
@@ -26,7 +24,7 @@ defmodule Expg.Bonjournal do
   end
 
   def getRecentEntries(count, char \\:Skender) do
-    data = Q.table("bonjournal")
+    Q.table("bonjournal")
     |> Q.filter(%{character: char})
     |> Q.order_by(Q.desc(:time)) |> Q.limit(count) |> DB.run |> Map.get(:data) 
   end

@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Expg.Prod do
   def run(_args) do
     Mix.env :prod
     Logger.info("Starting Expg in production mode.")
-    Expg.start
+    Mix.Task.run "run"
   end
 end
 
@@ -17,10 +17,18 @@ defmodule Mix.Tasks.Expg.Dev do
   
   def run(_args) do 
     Mix.env :dev
-    Code.ensure_compiled(Porcelain)
-    IO.inspect Application.fetch_env(:porcelain, :driver_internal)
-    IO.inspect IO.inspect Application.get_all_env(:porcelain)
     Logger.info("Starting Expg in dev mode.")
-    Expg.start
+    Mix.Task.run "run"
+  end
+end
+
+defmodule Mix.Tasks.Expg.New do
+  use Mix.Task
+  alias Expg.{Character, DB}
+  
+  def run(_args) do
+    DB.new
+    Character.new_and_init(:Skender)
+    Character.new_and_init(:Enemy)
   end
 end
