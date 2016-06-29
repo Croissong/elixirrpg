@@ -1,20 +1,14 @@
-defmodule ExPG.Character do
+defmodule Expg.Character do
   require Logger
   alias RethinkDB.Query, as: Q
-  alias ExPG.{DB, Combat, Characters}
+  alias Expg.{DB, Combat, Characters}
+  alias __MODULE__.Stats
   alias Maptu
   
   defstruct [:name, :stats, :id, :combatStats]
-  
-  defmodule Stats do
-    defstruct [:level, :xp, :gold]
-    def new(level \\0, xp \\0, gold \\0) do
-      %Stats{level: level, xp: xp, gold: gold}
-    end
-  end
 
   def as_struct(char) do 
-    Maptu.struct!(ExPG.Character, char) |>
+    Maptu.struct!(Expg.Character, char) |>
       Map.update!(:combatStats, &Maptu.struct!(Combat.Stats, &1)) |> Map.update!(:stats, &Maptu.struct!(Stats, &1)) |> Map.update!(:name, &String.to_atom(&1)) 
   end
 
@@ -24,9 +18,9 @@ defmodule ExPG.Character do
     |> Enum.reduce(char, fn (key, acc) -> Map.put(acc, key, Map.from_struct(acc[key])) end) 
     char
   end
-                    
+  
   def new(name, stats \\Stats.new, c_stats \\Combat.Stats.new) do
-    %ExPG.Character{name: name, stats: stats, combatStats: c_stats}
+    %Expg.Character{name: name, stats: stats, combatStats: c_stats}
   end
 
   def init(char) do
@@ -37,15 +31,15 @@ defmodule ExPG.Character do
       Logger.info("New character #{inspect char}"),
       do: char 
   end
-                    
+  
   def new_and_init(name, stats \\Stats.new, c_stats \\Combat.Stats.new) do 
     new(name, stats, c_stats) |> init
   end
-                    
+  
   def start_link(char) do 
     Agent.start_link(fn -> char end, name: char.name) 
   end
-                    
+  
 
   def update(%{name: name} = newChar) do 
     with {:ok, id} <- Agent.get_and_update(name, &({{:ok, &1.id}, Map.merge(&1, newChar)})),
@@ -63,7 +57,7 @@ defmodule ExPG.Character do
     char = get(name)
     %{stats: %{xp: xp, gold: gold, level: level}} = char
     {level, xp} = level_up(level, xp + xpGain) 
-    stats = %Stats{xp: xp, gold: gold + goldGain, level: level}
+    stats = Stats.new(xp, gold + goldGain, level)
     case update(%{char | stats: stats}) do
       {:ok, _} ->
         Logger.info("#{name} reward added: #{inspect reward}, total: #{inspect stats}")
@@ -75,12 +69,20 @@ defmodule ExPG.Character do
     levelGain = div(xp, 30) 
     if levelGain > 0, do: Logger.info("Level up")
     {level + levelGain, xp - levelGain * 30}
+  end 
+end
+
+defmodule Expg.Character.Stats do
+  defstruct [:level, :xp, :gold]
+  def new(level \\0, xp \\0, gold \\0) do
+    %__MODULE__{level: level, xp: xp, gold: gold}
   end
 end
-                    
-defmodule ExPG.Characters do 
+
+
+defmodule Expg.Characters do 
   alias RethinkDB.Query, as: Q 
-  alias ExPG.{DB, Character} 
+  alias Expg.{DB, Character} 
   require Logger
 
   def init_from_db do
@@ -99,4 +101,5 @@ defmodule ExPG.Characters do
   def init_char(char) do 
     char |> Character.as_struct |> init_char_from_struct 
   end
+  
 end

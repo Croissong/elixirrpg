@@ -1,5 +1,5 @@
-defmodule ExPG.Bonjournal do
-  alias ExPG.{DB, Character, Quests} 
+defmodule Expg.Bonjournal do
+  alias Expg.{DB, Character, Quests} 
   alias Timex.Time
   alias RethinkDB.Query, as: Q 
   require Logger

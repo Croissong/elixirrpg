@@ -1,11 +1,11 @@
-defmodule ExPG.Quest do
+defmodule Expg.Quest do
   @derive [Poison.Encoder]
   defstruct [:title, :type, :reward, :state, :content, :acceptTime, :completeTime, :character]
 end
 
-defmodule ExPG.Quests do
+defmodule Expg.Quests do
   alias RethinkDB.Query, as: Q 
-  alias ExPG.{DB, Character} 
+  alias Expg.{DB, Character} 
   alias Timex.Time
   alias HTTPoison
   require Logger

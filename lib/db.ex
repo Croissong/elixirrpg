@@ -1,8 +1,9 @@
-defmodule ExPG.DB do 
+defmodule Expg.DB do 
   alias RethinkDB.Connection, as: Conn
   alias RethinkDB.Query, as: Q
   alias Porcelain.Process, as: Proc
   require Logger
+  import Porcelain
   
   def run(query, opts \\ []) do
     Conn.run(query, __MODULE__, opts)
@@ -12,8 +13,9 @@ defmodule ExPG.DB do
     Q.db_drop(Mix.env) |> run
     with _ <- Q.db_create(Mix.env) |> run |> Map.get(:data) |> Map.get("dbs_created"),
          1 <- Q.table_create("quests") |> run |> Map.get(:data) |> Map.get("tables_created"),
-           1 <- Q.table_create("characters") |> run |> Map.get(:data) |> Map.get("tables_created"),
-           1 <- Q.table_create("bonjournal") |> run |> Map.get(:data) |> Map.get("tables_created"),
+           1 <- Q.table_create("characters") |> run |> Map.get(:data)
+           |> Map.get("tables_created"),
+      1 <- Q.table_create("bonjournal") |> run |> Map.get(:data) |> Map.get("tables_created"),
       do: Logger.info("Renewed DB")
   end
   
@@ -34,7 +36,7 @@ defmodule ExPG.DB do
   end
 end
 
-defmodule ExPG.DBSupervisor do 
+defmodule Expg.DBSupervisor do 
   use Supervisor
   
   def start_link do
@@ -43,7 +45,7 @@ defmodule ExPG.DBSupervisor do
   
   def init([]) do 
     children = [
-      worker(ExPG.DB, [[host: "localhost", port: 28015, db: to_string(Mix.env)]])
+      worker(Expg.DB, [[host: "localhost", port: 28015, db: to_string(Mix.env)]])
     ]
   
     supervise(children, strategy: :one_for_one)

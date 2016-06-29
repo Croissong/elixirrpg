@@ -2,7 +2,7 @@ defmodule Elixirpg.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :elixirpg,
+    [app: :expg,
      version: "0.0.1",
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
@@ -27,7 +27,7 @@ defmodule Elixirpg.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:rethinkdb, "~> 0.3.2"}, {:cowboy, "~> 1.0.0"}, {:plug, "~> 1.0"}, {:porcelain, "~> 2.0"},
+    [{:rethinkdb, "~> 0.3.2"}, {:cowboy, "~> 1.0.0"}, {:plug, "~> 1.0"}, {:porcelain, "~> 2.0.1"},
      {:poison, "~> 2.0"}, {:timex, "~> 2.1.4"}, {:credo, "~> 0.3.10", only: [:dev, :test]},
      {:dialyxir, "~> 0.3.3", only: [:dev, :test]}, {:maptu, ">= 0.0.0"}, {:httpoison, "~> 0.8.0"}]
   end

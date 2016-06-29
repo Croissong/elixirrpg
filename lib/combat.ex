@@ -1,13 +1,6 @@
-defmodule ExPG.Combat do
-  alias ExPG.{Character}
+defmodule Expg.Combat do
+  alias Expg.{Character}
   require Logger
-  
-  defmodule Stats do 
-    defstruct [:damage, :health]
-    def new(damage \\10, health  \\30) do
-      %Stats{damage: damage, health: health}
-    end
-  end
 
   def attack(attacker, defender) do
     attacker_cs = Character.get(attacker).c_stats
@@ -17,4 +10,12 @@ defmodule ExPG.Combat do
     defender = update_in(defender.combat_stats.health, def_health)
     Character.update(defender)
   end
+
+  defmodule Stats do 
+    defstruct [:damage, :health]
+    def new(damage \\10, health  \\30) do
+      %Stats{damage: damage, health: health}
+    end
+  end
+
 end

@@ -1,6 +1,6 @@
-defmodule ExPG.Quotes do
+defmodule Expg.Quotes do
   alias RethinkDB.Query, as: Q
-  alias ExPG.{DB}
+  alias Expg.{DB}
   require Logger
 
   def init do

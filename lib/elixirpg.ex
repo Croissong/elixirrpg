@@ -1,6 +1,6 @@
-defmodule ExPG do 
+defmodule Expg do 
   use Application
-  alias ExPG.{DBSupervisor, Router, Character, Characters, DB} 
+  alias Expg.{DBSupervisor, Router, Character, Characters, DB} 
 
   def new do
     DB.new

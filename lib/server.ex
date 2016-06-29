@@ -1,7 +1,7 @@
-defmodule ExPG.Router do 
+defmodule Expg.Router do 
   use Plug.Router
   alias Plug.Conn
-  alias ExPG.{Quests, Quest, Bonjournal, Character, Quotes}
+  alias Expg.{Quests, Quest, Bonjournal, Character, Quotes}
   plug :match
   plug :dispatch
 
@@ -65,6 +65,6 @@ defmodule ExPG.Router do
       do: send_resp(conn, 200, quests)
   end
   def start do
-    Plug.Adapters.Cowboy.http ExPG.Router, []
+    Plug.Adapters.Cowboy.http Expg.Router, []
   end
 end
