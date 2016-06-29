@@ -1,7 +1,0 @@
-2385-06-15T15:02:50.925673500 0.037928s notice: In recursion: removing file 'C:\\Users\\janmo\\Documents\\code\\elixirpg\\rethinkdb_data\\tmp'
-2385-06-15T15:02:50.928675400 0.040605s warn: Trying to delete non-existent file 'C:\\Users\\janmo\\Documents\\code\\elixirpg\\rethinkdb_data\\tmp'
-2385-06-15T15:02:50.930677000 0.042712s notice: Running rethinkdb 2.2.4-windows-alpha-4 (debug) (MSC 190023506)...
-2385-06-15T15:02:50.931677200 0.043558s notice: Running on 6.2.9200 (Windows 8, Server 2012)
-2385-06-15T15:02:50.931677201 0.044201s notice: Loading data from directory C:\\Users\\janmo\\Documents\\code\\elixirpg\\rethinkdb_data
-2385-06-15T15:02:50.992366600 0.104813s error: CreateFile failed: C:\\Users\\janmo\\Documents\\code\\elixirpg\\rethinkdb_data\\metadata: The system cannot find the file specified.
-2385-06-15T15:02:50.998391800 0.110929s error: Inaccessible database file: "C:\\Users\\janmo\\Documents\\code\\elixirpg\\rethinkdb_data\\metadata": Input/output error\nSome possible reasons:\n- the database file couldn't be created or opened for reading and writing\n- the user which was used to start the database is not an owner of the file
