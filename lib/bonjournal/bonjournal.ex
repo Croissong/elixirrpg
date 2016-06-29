@@ -1,8 +1,7 @@
 defmodule ExPG.Bonjournal do
-  alias DBTest
+  alias ExPG.{DB, Character, Quests} 
   alias Timex.Time
-  alias RethinkDB.Query, as: Q
-  alias Character
+  alias RethinkDB.Query, as: Q 
   require Logger
   
   defmodule Entry do
@@ -14,8 +13,8 @@ defmodule ExPG.Bonjournal do
     query = Q.table("bonjournal") |> Q.insert(entry) |> DB.run |> Map.get(:data)
     case query["errors"] do
       0 ->
-        reward = DBTest.calcReward()
-        Character.addReward(char, reward)
+        reward = Quests.calc_reward()
+        Character.add_reward(char, reward)
         words = entry.entry |> String.split |> length
         Logger.info("Entry added << #{String.slice(entry.entry, 0..10)}"
           <> "... #{String.slice(entry.entry, -15..-1)} >>")
