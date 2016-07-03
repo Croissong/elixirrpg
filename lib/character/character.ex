@@ -89,10 +89,10 @@ defmodule Expg.Characters do
   require Logger
     
   def start_link(_state, opts \\ 0) do
-    Supervisor.start_link(__MODULE__, opt, name: __MODULE__)
+    Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
   end
-    
-  def init([]) do
+  
+  def init(_opts \\ [] ) do
     init_from_db
     children = [
     ]
@@ -100,7 +100,6 @@ defmodule Expg.Characters do
     supervise(children, strategy: :one_for_one)
   end
 
-  
   def init_from_db do
     query = Q.table("characters") |> DB.run
     case Map.get(query, :data) do

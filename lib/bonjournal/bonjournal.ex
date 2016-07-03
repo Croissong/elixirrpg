@@ -16,7 +16,7 @@ defmodule Expg.Bonjournal do
         reward = Quests.calc_reward()
         Character.add_reward(char, reward)
         words = entry.entry |> String.split |> length 
-        Logger.info("Entry added << #{String.slice(entry.entry, 21..31)}"
+        Logger.info("Entry added << #{String.slice(entry.entry, 20..30)}"
           <> "... #{String.slice(entry.entry, -15..-1)} >>")
         {:ok, reward, words}
       :else -> Logger.error("#{inspect query}")
